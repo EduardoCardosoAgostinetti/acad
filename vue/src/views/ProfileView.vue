@@ -1,60 +1,65 @@
 <template>
     <main>
-        <div class="profile-container">
-            <div class="profile-content">
-                <div class="profile-image-container">
-                    <img v-if="profilePicture" :src="'http://localhost:3000/uploads/profilePictures/' + profilePicture"
-                        alt="Foto de Perfil" class="profile-image" @click="triggerProfileImageUpload" />
-                    <img v-if="!profilePicture" :src="defaultProfilePicture" alt="Foto de Perfil" class="profile-image"
-                        @click="triggerProfileImageUpload" />
-                    <input type="file" ref="profileImageInput" @change="handleProfilePictureUpload" accept="image/*"
-                        style="display: none;" />
-                </div>
+        <div class="container-main">
+            <div class="profile-container">
+                <div class="profile-content">
+                    <div class="profile-image-container">
+                        <img v-if="profilePicture"
+                            :src="'http://localhost:3000/uploads/profilePictures/' + profilePicture"
+                            alt="Foto de Perfil" class="profile-image" @click="triggerProfileImageUpload" />
+                        <img v-if="!profilePicture" :src="defaultProfilePicture" alt="Foto de Perfil"
+                            class="profile-image" @click="triggerProfileImageUpload" />
+                        <input type="file" ref="profileImageInput" @change="handleProfilePictureUpload" accept="image/*"
+                            style="display: none;" />
+                    </div>
 
-                <div class="profile-info">
-                    <p v-if="user.name" class="profile-name">{{ user.name }}</p>
-                    <p v-if="user.email" class="profile-email">{{ user.email }}</p>
-                    <p v-if="user.username" class="profile-email">{{ user.username }}</p>
-                    <p v-if="user.birthdate" class="profile-detail">{{ calculateAge(user.birthdate) }} years</p>
-                    <p v-if="user.height" class="profile-detail">{{ user.height }} cm</p>
-                    <p v-if="user.weight" class="profile-detail">{{ user.weight }} kg</p>
+                    <div class="profile-info">
+                        <p v-if="user.name" class="profile-name">{{ user.name }}</p>
+                        <p v-if="user.email" class="profile-email">{{ user.email }}</p>
+                        <p v-if="user.username" class="profile-email">{{ user.username }}</p>
+                        <p v-if="user.birthdate" class="profile-detail">{{ calculateAge(user.birthdate) }} years</p>
+                        <p v-if="user.height" class="profile-detail">{{ user.height }} cm</p>
+                        <p v-if="user.weight" class="profile-detail">{{ user.weight }} kg</p>
 
-                </div>
-            </div>
-        </div>
-
-        <div class="upload-container">
-            <div class="upload-section">
-                <h2>Add Progress Photos</h2>
-                <p>Share your progress with new photos. The images will appear in the gallery below.</p>
-                <div class="upload-action-group">
-                    <input type="file" @change="handlePhotoUpload" accept="image/*" class="file-input upload-input" />
-                    <div class="button-group">
-                        <button @click="toggleEditMode" v-if="!isEditing" class="edit-gallery-btn">Editar
-                            Galeria</button>
-                        <button @click="toggleEditMode" v-if="isEditing"
-                            class="edit-gallery-btn cancel-edit-btn">Cancelar</button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="photo-gallery" v-if="userPhotos.length">
-            <div class="gallery-grid">
-                <div v-for="(photo, index) in userPhotos" :key="index" class="gallery-photo-container">
-                    <img :src="'http://localhost:3000/uploads/gallery/' + photo.fileName" class="gallery-photo"
-                        @click="expandPhoto('http://localhost:3000/uploads/gallery/' + photo.fileName)" />
-                    <button v-if="isEditing" @click="deletePhoto(photo.fileName)" class="delete-photo-btn">
-                        <span class="delete-icon">X</span>
-                    </button>
+            <div class="upload-container">
+                <div class="upload-section">
+                    <h2>Add Progress Photos</h2>
+                    <p>Share your progress with new photos. The images will appear in the gallery below.</p>
+                    <div class="upload-action-group">
+                        <input type="file" @change="handlePhotoUpload" accept="image/*"
+                            class="file-input upload-input" />
+                        <div class="button-group">
+                            <button @click="toggleEditMode" v-if="!isEditing" class="edit-gallery-btn">Editar
+                                Galeria</button>
+                            <button @click="toggleEditMode" v-if="isEditing"
+                                class="edit-gallery-btn cancel-edit-btn">Cancelar</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div v-if="expandedPhoto" class="photo-modal" @click="expandedPhoto = null">
-            <img :src="expandedPhoto" class="expanded-photo" />
+            <div class="photo-gallery" v-if="userPhotos.length">
+                <div class="gallery-grid">
+                    <div v-for="(photo, index) in userPhotos" :key="index" class="gallery-photo-container">
+                        <img :src="'http://localhost:3000/uploads/gallery/' + photo.fileName" class="gallery-photo"
+                            @click="expandPhoto('http://localhost:3000/uploads/gallery/' + photo.fileName)" />
+                        <button v-if="isEditing" @click="deletePhoto(photo.fileName)" class="delete-photo-btn">
+                            <span class="delete-icon">X</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="expandedPhoto" class="photo-modal" @click="expandedPhoto = null">
+                <img :src="expandedPhoto" class="expanded-photo" />
+            </div>
         </div>
     </main>
+
 </template>
 
 <script>
@@ -245,10 +250,15 @@ main {
     min-height: 90vh;
     padding: 6rem 0;
 }
-
+.container-main {
+    width: 80%;
+    align-items: center;
+    flex-direction: column;
+    display: flex;
+    white-space: nowrap;
+}
 .profile-container {
-    max-width: 800px;
-    margin: 0 auto;
+    width: 100%;
     padding: 24px;
     background-color: white;
     box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
@@ -330,7 +340,7 @@ main {
 }
 
 .upload-container {
-    max-width: 800px;
+    width: 100%;
     margin-top: 32px;
     padding: 24px;
     background-color: #f9f9f9;
@@ -374,7 +384,8 @@ main {
     gap: 16px;
 }
 
-.edit-gallery-btn, .cancel-edit-btn {
+.edit-gallery-btn,
+.cancel-edit-btn {
     padding: 10px 20px;
     background-color: rgb(221 221 221);
     color: rgb(0, 0, 0);
@@ -388,13 +399,13 @@ main {
     background-color: #ff4d4f;
 }
 
-.edit-gallery-btn:hover, .cancel-edit-btn:hover {
+.edit-gallery-btn:hover,
+.cancel-edit-btn:hover {
     background-color: #45a049;
 }
 
 .photo-gallery {
     width: 100%;
-    max-width: 800px;
     margin: 24px auto;
 }
 
