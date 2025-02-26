@@ -1,7 +1,7 @@
 const express = require('express');
 const signin = require('./routes/signin');
 const signup = require('./routes/signup');
-const ftp = require('./routes/ftp');
+const upload = require('./routes/upload');
 const forgotPassword = require('./routes/forgotPassword');
 const cors = require('cors');
 require('./models/syncModels');
@@ -18,7 +18,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/signin', signin);
 app.use('/signup', signup);
 app.use('/forgotPassword', forgotPassword);
-app.use('/ftp', ftp);
+app.use('/upload', upload);
 
 app.listen(PORT, () => {
     console.log(` HTTP running at: http://localhost:3000`);
