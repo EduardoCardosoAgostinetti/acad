@@ -7,8 +7,8 @@
                         <img v-if="profilePicture"
                             :src="'http://localhost:3000/uploads/profilePictures/' + profilePicture"
                             alt="Foto de Perfil" class="profile-image" @click="triggerProfileImageUpload" />
-                        <img v-else :src="defaultProfilePicture" alt="Foto de Perfil"
-                            class="profile-image" @click="triggerProfileImageUpload" />
+                        <img v-else :src="defaultProfilePicture" alt="Foto de Perfil" class="profile-image"
+                            @click="triggerProfileImageUpload" />
                         <input type="file" ref="profileImageInput" @change="handleProfilePictureUpload" accept="image/*"
                             style="display: none;" />
                     </div>
@@ -17,12 +17,34 @@
                         <p v-if="user.name" class="profile-name">{{ user.name }}</p>
                         <p v-if="user.email" class="profile-email">{{ user.email }}</p>
                         <p v-if="user.username" class="profile-email">{{ user.username }}</p>
-                        <p v-if="user.birthdate" class="profile-detail">{{ calculateAge(user.birthdate) }} years</p>
-                        <p v-if="user.height" class="profile-detail">{{ user.height }} cm</p>
-                        <p v-if="user.weight" class="profile-detail">{{ user.weight }} kg</p>
                     </div>
                 </div>
             </div>
+
+            <div class="gallery-menu">
+                <button v-for="gallery in galleries" :key="gallery.id" @click="activeGallery = gallery.id"
+                    :class="{ active: activeGallery === gallery.id }">
+                    {{ gallery.name }}
+                </button>
+
+            </div>
+            <input type="file" @change="handleGalleryUpload" />
+            <div class="gallery-container">
+                <div class="gallery-grid">
+                    <div v-for="image in galleryImages[activeGallery]" :key="image" class="gallery-item">
+                        <img :src="'http://localhost:3000' + image" alt="Gallery Image" @click="openModal(image)"/>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Modal para exibir imagem expandida -->
+            <div v-if="isModalOpen" class="modal" @click="closeModal">
+                <div class="modal-content" @click.stop>
+                    <img :src="'http://localhost:3000' + modalImage" alt="Expanded Image" />
+                </div>
+            </div>
+
         </div>
     </main>
 </template>
@@ -34,39 +56,44 @@ export default {
     name: "UserProfile",
     data() {
         return {
+            isModalOpen: false,
+            modalImage: null,
+
+            activeGallery: '1',
+            galleries: [
+                { id: '1', name: 'Arm' },
+                { id: '2', name: 'Chest' },
+                { id: '3', name: 'Coast' },
+                { id: '4', name: 'Abdomen' },
+                { id: '5', name: 'Quadriceps' },
+                { id: '6', name: 'Glutes' },
+                { id: '7', name: 'Calves' },
+            ],
+            galleryImages: {
+                1: [],
+                2: [],
+                3: [],
+                4: [],
+                5: [],
+                6: [],
+                7: [],
+            },
             user: {},
             profilePicture: null,
-            defaultProfilePicture:"default.jpg",
+            defaultProfilePicture: "default.jpg",
         };
     },
     methods: {
-        triggerProfileImageUpload() {
-            this.$refs.profileImageInput.click();
+        // Método para abrir o modal e exibir a imagem
+        openModal(image) {
+            this.modalImage = image;
+            this.isModalOpen = true;
         },
 
-        async handleProfilePictureUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('userId', this.user.id);
-
-                try {
-                    const response = await fetch('http://localhost:3000/upload/profilePicture', {
-                        method: 'POST',
-                        body: formData,
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        
-                        this.profilePicture = result.fileName;
-                    } else {
-                        console.error(result.message);
-                    }
-                } catch (error) {
-                    console.error('Erro ao enviar a imagem de perfil:', error);
-                }
-            }
+        // Método para fechar o modal
+        closeModal() {
+            this.isModalOpen = false;
+            this.modalImage = null;
         },
 
         loadUserFromToken() {
@@ -85,16 +112,33 @@ export default {
             }
         },
 
-        calculateAge(birthdate) {
-            if (!birthdate) return null;
-            const birthDateObj = new Date(birthdate);
-            const today = new Date();
-            let age = today.getFullYear() - birthDateObj.getFullYear();
-            const monthDiff = today.getMonth() - birthDateObj.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
-                age--;
+        triggerProfileImageUpload() {
+            this.$refs.profileImageInput.click();
+        },
+
+        async handleProfilePictureUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('userId', this.user.id);
+
+                try {
+                    const response = await fetch('http://localhost:3000/upload/profilePicture', {
+                        method: 'POST',
+                        body: formData,
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+
+                        this.profilePicture = result.fileName;
+                    } else {
+                        console.error(result.message);
+                    }
+                } catch (error) {
+                    console.error('Erro ao enviar a imagem de perfil:', error);
+                }
             }
-            return age;
         },
 
         async fetchProfilePicture() {
@@ -113,12 +157,73 @@ export default {
                 console.error('Erro ao buscar a imagem de perfil:', error);
             }
         },
+
+        async handleGalleryUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('userId', this.user.id); // Garante que o userId é enviado corretamente
+
+            try {
+                const response = await fetch(`http://localhost:3000/upload/gallery/${this.activeGallery}`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const result = await response.json();
+                console.log(result.filePath);
+
+
+                if (result.success) {
+                    this.galleryImages[this.activeGallery].push(
+                        result.filePath
+                    );
+                } else {
+                    console.error('Erro no upload:', result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao fazer upload da imagem da galeria:', error);
+            }
+        },
+
+        async fetchGalleryImages() {
+            try {
+                const response = await fetch(`http://localhost:3000/upload/gallery/${this.user.id}`, {
+                    method: 'GET',
+                });
+
+                const result = await response.json();
+                console.log(result);
+                if (result.success) {
+                    // Resetando as galerias antes de preencher com os novos dados
+                    this.galleries.forEach(gallery => {
+                        this.galleryImages[gallery.id] = [];
+                    });
+
+                    // Preenchendo cada galeria com as imagens recebidas
+                    result.images.forEach(image => {
+                        if (this.galleryImages[image.galleryId]) { // Aqui corrigimos para galleryId
+                            this.galleryImages[image.galleryId].push(image.filePath);
+                        }
+                    });
+                } else {
+                    console.error('Erro ao buscar imagens das galerias:', result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar imagens das galerias:', error);
+            }
+        },
+
     },
 
     mounted() {
         this.loadUserFromToken();
         this.fetchProfilePicture();
-    },
+        this.fetchGalleryImages();
+    }
+
 };
 </script>
 
@@ -130,61 +235,218 @@ main {
     min-height: 90vh;
     padding: 6rem 0;
 }
+
 .container-main {
     width: 80%;
     align-items: center;
     flex-direction: column;
     display: flex;
 }
+
 .profile-container {
     width: 100%;
-    padding: 24px;
     background-color: white;
     box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
     border-radius: 16px;
 }
+
 .profile-content {
     display: flex;
     flex-direction: column;
     gap: 24px;
     align-items: center;
 }
+
 .profile-info {
     text-align: center;
 }
+
 @media (min-width: 768px) {
     .profile-content {
         flex-direction: row;
     }
+
     .profile-info {
         flex: 1;
         text-align: left;
     }
+
+    .profile-image[data-v-0e7a7305] {
+        width: 160px;
+        height: 160px;
+    }
 }
+
 .profile-image-container {
     position: relative;
 }
+
 .profile-image {
-    width: 160px;
-    height: 160px;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
     object-fit: cover;
     border: 4px solid white;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease;
 }
+
 .profile-image:hover {
     transform: scale(1.05);
 }
+
 .profile-name {
     font-size: 1.125rem;
     font-weight: 600;
 }
+
 .profile-email {
     color: #718096;
 }
+
 .profile-detail {
     margin-top: 8px;
     font-size: 1rem;
 }
+
+.gallery-menu {
+    width: 100%;
+    display: flex;
+    margin: 1rem;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 768px) {
+    .gallery-menu {
+        flex-direction: row;
+    }
+}
+
+.gallery-menu button {
+    width: 100%;
+    background-color: transparent;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #495057;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.gallery-menu button:hover {
+    background-color: rgb(100, 58, 167);
+    color: white;
+}
+
+.gallery-menu button.active {
+    background-color: rgb(100, 58, 167);
+    color: white;
+    border: 2px solid rgb(100, 58, 167);
+    font-weight: bold;
+}
+
+.gallery-container {
+    width: 100%;
+    width: 100%;
+    max-width: 1200px;
+    /* Limitar largura máxima do container */
+    margin: 0 auto;
+
+}
+
+.gallery-grid {
+    width: 100%;
+    display: grid;
+    /* Usando grid para o layout */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Ajustando a largura mínima para 200px */
+    gap: 10px; /* Espaço entre os itens */
+}
+
+.gallery-item {
+    width: 100%; /* Itens ocupando toda a largura da grid */
+    height: 200px;
+    position: relative;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+/* Ajuste para dispositivos móveis e telas menores */
+@media (max-width: 768px) {
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Para telas menores, as colunas podem ser de 100px */
+    }
+    .gallery-item {
+        width: 100%;
+        height: 100px; /* Reduz a altura nas telas menores */
+    }
+}
+
+.gallery-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.1);
+}
+
+input[type="file"] {
+    display: block;
+    margin: 0.5rem;
+    cursor: pointer;
+    background-color: rgb(100, 58, 167);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+input[type="file"]:hover {
+    background-color: rgb(100, 58, 167);
+}
+
+/* Estilos para o modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    max-width: 90%;
+    max-height: 90%;
+    padding: 10px;
+    background-color: white;
+    border-radius: 10px;
+}
+
+.modal-content img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
 </style>
