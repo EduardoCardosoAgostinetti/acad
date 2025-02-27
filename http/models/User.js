@@ -31,14 +31,6 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    weight: {
-        type: DataTypes.FLOAT,
-        allowNull: true,
-    },
-    height: {
-        type: DataTypes.FLOAT,
-        allowNull: true,
-    },
     birthdate: {
         type: DataTypes.DATEONLY,  // Usando DATEONLY para armazenar apenas a data, sem o horário
         allowNull: false,

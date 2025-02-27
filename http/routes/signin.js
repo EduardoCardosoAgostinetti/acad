@@ -37,8 +37,6 @@ router.post('/', express.json(), async (req, res) => {
                 name: user.name,
                 email: user.email,
                 username: user.username,
-                weight: user.weight,
-                height: user.height,
                 birthdate: user.birthdate,
             },
             JWT_SECRET, // Secret key

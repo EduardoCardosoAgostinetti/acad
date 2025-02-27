@@ -29,10 +29,14 @@
 
             </div>
             <input type="file" @change="handleGalleryUpload" />
+            <button @click="toggleEditMode" class="edit-gallery-btn">
+                {{ isEditing ? "Finish" : "Delete Image" }}
+            </button>
             <div class="gallery-container">
                 <div class="gallery-grid">
                     <div v-for="image in galleryImages[activeGallery]" :key="image" class="gallery-item">
-                        <img :src="'http://localhost:3000' + image" alt="Gallery Image" @click="openModal(image)"/>
+                        <img :src="'http://localhost:3000' + image.filePath" alt="Gallery Image" @click="openModal(image)"/>
+                        <button v-if="isEditing" @click="deleteImage(image)" class="delete-btn">X</button>
                     </div>
 
                 </div>
@@ -41,7 +45,7 @@
             <!-- Modal para exibir imagem expandida -->
             <div v-if="isModalOpen" class="modal" @click="closeModal">
                 <div class="modal-content" @click.stop>
-                    <img :src="'http://localhost:3000' + modalImage" alt="Expanded Image" />
+                    <img :src="'http://localhost:3000' + modalImage.filePath" alt="Expanded Image" />
                 </div>
             </div>
 
@@ -58,7 +62,7 @@ export default {
         return {
             isModalOpen: false,
             modalImage: null,
-
+            isEditing: false,
             activeGallery: '1',
             galleries: [
                 { id: '1', name: 'Arm' },
@@ -84,7 +88,31 @@ export default {
         };
     },
     methods: {
-        // Método para abrir o modal e exibir a imagem
+
+        toggleEditMode() {
+            this.isEditing = !this.isEditing;
+        },
+
+        async deleteImage(image) {
+            console.log(image);
+            try {
+                const response = await fetch(`http://localhost:3000/upload/gallery/${image.imageId}`, {
+                    method: 'DELETE',
+                });
+
+                const result = await response.json();
+                console.log(result);
+                if (result.success) {
+                    this.galleryImages[this.activeGallery] = this.galleryImages[this.activeGallery].filter(img => img !== image);
+                } else {
+                    console.error('Erro ao excluir imagem:', result.message);
+                }
+            } catch (error) {
+                console.error('Erro ao excluir imagem:', error);
+            }
+        },
+
+
         openModal(image) {
             this.modalImage = image;
             this.isModalOpen = true;
@@ -105,8 +133,6 @@ export default {
                     name: payload.name || "",
                     email: payload.email || "",
                     birthdate: payload.birthdate || null,
-                    height: payload.height || null,
-                    weight: payload.weight || null,
                     username: payload.username || null,
                 };
             }
@@ -173,13 +199,14 @@ export default {
                 });
 
                 const result = await response.json();
-                console.log(result.filePath);
+                console.log(result);
 
 
                 if (result.success) {
-                    this.galleryImages[this.activeGallery].push(
-                        result.filePath
-                    );
+                    this.galleryImages[this.activeGallery].push({
+                        filePath: result.filePath,
+                        imageId: result.imageId
+                });
                 } else {
                     console.error('Erro no upload:', result.message);
                 }
@@ -205,7 +232,7 @@ export default {
                     // Preenchendo cada galeria com as imagens recebidas
                     result.images.forEach(image => {
                         if (this.galleryImages[image.galleryId]) { // Aqui corrigimos para galleryId
-                            this.galleryImages[image.galleryId].push(image.filePath);
+                            this.galleryImages[image.galleryId].push({ filePath: image.filePath, imageId: image.imageId});
                         }
                     });
                 } else {
@@ -228,6 +255,38 @@ export default {
 </script>
 
 <style scoped>
+
+.edit-gallery-btn {
+    margin: 10px;
+    padding: 10px 15px;
+    background-color: rgb(100, 58, 167);
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.delete-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: red;
+    color: white;
+    border: none;
+    padding: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.delete-btn:hover {
+    background: darkred;
+}
+
+.edit-gallery-btn:hover {
+    background-color: rgb(80, 40, 140);
+}
+
 main {
     display: flex;
     flex-direction: column;
