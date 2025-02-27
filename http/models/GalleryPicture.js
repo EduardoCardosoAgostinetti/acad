@@ -17,6 +17,10 @@ const GalleryPicture = sequelize.define('GalleryPicture', {
         },
         onDelete: 'CASCADE',
     },
+    galleryId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
     fileName: {
         type: DataTypes.STRING,
         allowNull: false,
