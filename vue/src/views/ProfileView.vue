@@ -34,17 +34,23 @@
             </button>
             <div class="gallery-container">
                 <div class="gallery-grid">
-                    <div v-for="image in galleryImages[activeGallery]" :key="image" class="gallery-item">
-                        <img :src="'http://localhost:3000' + image.filePath" alt="Gallery Image" @click="openModal(image)"/>
+                    <div v-for="image in galleryImages[activeGallery]" :key="image.imageId" class="gallery-item">
+                        <div class="image-info">
+                            <!-- Exibindo a data de criação -->
+                            <p class="image-date">{{ new Date(image.createdAt).toLocaleDateString() }}</p>
+                        </div>
+                        <img :src="'http://localhost:3000' + image.filePath" alt="Gallery Image"
+                            @click="openModal(image)" />
                         <button v-if="isEditing" @click="deleteImage(image)" class="delete-btn">X</button>
                     </div>
-
                 </div>
+
             </div>
 
             <!-- Modal para exibir imagem expandida -->
             <div v-if="isModalOpen" class="modal" @click="closeModal">
                 <div class="modal-content" @click.stop>
+
                     <img :src="'http://localhost:3000' + modalImage.filePath" alt="Expanded Image" />
                 </div>
             </div>
@@ -94,7 +100,10 @@ export default {
         },
 
         async deleteImage(image) {
-            console.log(image);
+            // Exibe o alerta de confirmação
+            const confirmed = confirm("Are you sure you want to delete this image?");
+            if (!confirmed) return;  // Se o usuário não confirmar, cancela a exclusão
+
             try {
                 const response = await fetch(`http://localhost:3000/upload/gallery/${image.imageId}`, {
                     method: 'DELETE',
@@ -103,6 +112,7 @@ export default {
                 const result = await response.json();
                 console.log(result);
                 if (result.success) {
+                    // Remove a imagem da galeria atual
                     this.galleryImages[this.activeGallery] = this.galleryImages[this.activeGallery].filter(img => img !== image);
                 } else {
                     console.error('Erro ao excluir imagem:', result.message);
@@ -111,6 +121,7 @@ export default {
                 console.error('Erro ao excluir imagem:', error);
             }
         },
+
 
 
         openModal(image) {
@@ -206,7 +217,9 @@ export default {
                     this.galleryImages[this.activeGallery].push({
                         filePath: result.filePath,
                         imageId: result.imageId
-                });
+                    });
+                    event.target.value = '';
+                    this.fetchGalleryImages();
                 } else {
                     console.error('Erro no upload:', result.message);
                 }
@@ -231,10 +244,21 @@ export default {
 
                     // Preenchendo cada galeria com as imagens recebidas
                     result.images.forEach(image => {
-                        if (this.galleryImages[image.galleryId]) { // Aqui corrigimos para galleryId
-                            this.galleryImages[image.galleryId].push({ filePath: image.filePath, imageId: image.imageId});
+                        if (this.galleryImages[image.galleryId]) {
+                            // Adicionando a data de criação para cada imagem
+                            this.galleryImages[image.galleryId].push({
+                                filePath: image.filePath,
+                                imageId: image.imageId,
+                                createdAt: image.createdAt // Supondo que createdAt seja retornado
+                            });
                         }
                     });
+
+                    // Ordenando as imagens por createdAt em ordem decrescente (mais recentes primeiro)
+                    this.galleries.forEach(gallery => {
+                        this.galleryImages[gallery.id].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    });
+
                 } else {
                     console.error('Erro ao buscar imagens das galerias:', result.message);
                 }
@@ -243,6 +267,8 @@ export default {
             }
         },
 
+
+
     },
 
     mounted() {
@@ -250,7 +276,7 @@ export default {
         const token = sessionStorage.getItem("token");
 
         if (!token) {
-            this.$router.push('/signin'); 
+            this.$router.push('/signin');
             return;
         }
 
@@ -263,7 +289,6 @@ export default {
 </script>
 
 <style scoped>
-
 .edit-gallery-btn {
     margin: 10px;
     padding: 10px 15px;
@@ -430,13 +455,14 @@ main {
 .gallery-grid {
     width: 100%;
     display: grid;
-    /* Usando grid para o layout */
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Ajustando a largura mínima para 200px */
-    gap: 10px; /* Espaço entre os itens */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
 }
 
 .gallery-item {
-    width: 100%; /* Itens ocupando toda a largura da grid */
+
+    width: 100%;
+    /* Itens ocupando toda a largura da grid */
     height: 200px;
     position: relative;
     border-radius: 10px;
@@ -447,11 +473,14 @@ main {
 /* Ajuste para dispositivos móveis e telas menores */
 @media (max-width: 768px) {
     .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Para telas menores, as colunas podem ser de 100px */
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        /* Para telas menores, as colunas podem ser de 100px */
     }
+
     .gallery-item {
         width: 100%;
-        height: 100px; /* Reduz a altura nas telas menores */
+        height: 100px;
+        /* Reduz a altura nas telas menores */
     }
 }
 
@@ -466,6 +495,23 @@ main {
     object-fit: cover;
     border-radius: 10px;
     transition: transform 0.3s ease;
+}
+
+.image-info {
+    position: absolute;
+    bottom: 6px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.9em;
+}
+
+.image-date {
+    margin: 0;
+    font-size: 0.9em;
+    font-weight: bold;
 }
 
 .gallery-item:hover img {
@@ -515,5 +561,4 @@ input[type="file"]:hover {
     height: auto;
     object-fit: contain;
 }
-
 </style>
