@@ -246,6 +246,14 @@ export default {
     },
 
     mounted() {
+
+        const token = sessionStorage.getItem("token");
+
+        if (!token) {
+            this.$router.push('/signin'); 
+            return;
+        }
+
         this.loadUserFromToken();
         this.fetchProfilePicture();
         this.fetchGalleryImages();
