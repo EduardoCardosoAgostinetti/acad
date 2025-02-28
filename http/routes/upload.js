@@ -161,7 +161,8 @@ router.post('/gallery/:galleryId', async (req, res, next) => {
                 message: `Image uploaded to ${galleryId} successfully!`,
                 filePath: newPicture.filePath,
                 fileName: newPicture.fileName,
-                id: newPicture.id
+                id: newPicture.id,
+                imageId: newPicture.imageId,
             });
         } catch (dbError) {
             return res.status(500).json({ success: false, message: 'Database error.', error: dbError.message });
@@ -175,14 +176,39 @@ router.get('/gallery/:userId', async (req, res) => {
 
         // Buscar todas as imagens das galerias do usuário
         const images = await GalleryPicture.findAll({
-            where: { userId },
-            attributes: ['filePath', 'galleryId'], // Pegamos apenas os dados necessários
+            where: { userId }
         });
 
         return res.json({ success: true, images });
     } catch (error) {
         console.error('Erro ao buscar imagens da galeria:', error);
         return res.status(500).json({ success: false, message: 'Erro ao buscar imagens' });
+    }
+});
+
+// Delete gallery image
+router.delete('/gallery/:imageId', async (req, res) => {
+    const { imageId } = req.params;
+
+    try {
+        const image = await GalleryPicture.findOne({ where: { imageId } });
+
+        if (!image) {
+            return res.status(404).json({ success: false, message: 'Image not found.' });
+        }
+
+        const filePath = path.join(__dirname, '..', image.filePath);
+
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+
+        await image.destroy();
+
+        res.status(200).json({ success: true, message: 'Gallery image deleted successfully!' });
+    } catch (error) {
+        console.error('Error deleting gallery image:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete gallery image.', error: error.message });
     }
 });
 

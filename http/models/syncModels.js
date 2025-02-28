@@ -3,7 +3,7 @@ const User = require('./User');
 const PasswordReset = require('./PasswordReset');
 const ProfilePicture = require('./ProfilePicture');
 const GalleryPicture = require('./GalleryPicture');
-
+const WorkoutSheet = require('./WorkoutSheet');
 // Sincroniza os modelos com o banco de dados
 (async () => {
   try {
