@@ -122,7 +122,7 @@ Esta é uma API de gerenciamento de conta e exercícios, com funcionalidades com
       { "name": "name", "sets": 3, "series": [1, 1, 1] }
       { "name": "name", "sets": 4, "series": [1, 1, 1, 1] },
     ],
-    "userId": userId
+    "userId": "userId"
   }
   ```
 - **Descrição:** Cria uma ficha de treino para o usuário, especificando o grupo muscular, os exercícios e as séries.
