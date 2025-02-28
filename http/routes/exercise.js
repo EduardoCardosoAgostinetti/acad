@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post('/workout_sheet', async (req, res) => {
     try {
-        const { muscleGroup, exercises, userId } = req.body;
+        const { muscleGroup, exercises, userId, comment } = req.body;
 
         if (!muscleGroup || exercises.length === 0 || !userId) {
             return res.status(400).json({ error: 'Todos os campos são obrigatórios!' });
@@ -16,7 +16,7 @@ router.post('/workout_sheet', async (req, res) => {
             `${exercise.name}|${exercise.sets}|${exercise.series.join('-')}`
         ).join('; ');
 
-        const newWorkout = await WorkoutSheet.create({ muscleGroup, exercises: exercisesString, userId });
+        const newWorkout = await WorkoutSheet.create({ muscleGroup, exercises: exercisesString, userId, comment });
 
         res.status(201).json(newWorkout);
     } catch (error) {
@@ -30,7 +30,7 @@ router.get('/workout_sheets/:userId', async (req, res) => {
   
       // Verifica se o userId foi fornecido
       if (!userId) {
-        return res.status(400).json({ error: 'O userId é obrigatório!' });
+        return res.status(400).json({ success: false, error: 'O userId é obrigatório!' });
       }
   
       // Recuperar as fichas de treino relacionadas ao userId
@@ -39,12 +39,11 @@ router.get('/workout_sheets/:userId', async (req, res) => {
       });
   
       if (workoutSheets.length === 0) {
-        return res.status(404).json({ error: 'Nenhuma ficha de treino encontrada para este usuário!' });
+        return res.status(404).json({ success: false, error: 'Nenhuma ficha de treino encontrada para este usuário!' });
       }
-  
-      res.status(200).json(workoutSheets);
+      res.status(200).json({ success: true, workoutSheets: workoutSheets });
     } catch (error) {
-      res.status(500).json({ error: 'Erro ao buscar as fichas de treino', details: error.message });
+      res.status(500).json({ success: false, error: 'Erro ao buscar as fichas de treino', details: error.message });
     }
   });
   

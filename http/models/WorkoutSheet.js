@@ -16,6 +16,10 @@ const WorkoutSheet = sequelize.define('WorkoutSheet', {
     type: DataTypes.JSON,
     allowNull: false
   },
+  comment: { // Novo campo para o comentário
+    type: DataTypes.TEXT,
+    allowNull: true, // Pode ser nulo, pois o comentário é opcional
+  },
   userId: {
     type: DataTypes.INTEGER,
     allowNull: false,

@@ -1,33 +1,53 @@
 <template>
-    <div class="exercises-view">
-        <h1 class="title">Cadastrar Ficha de Exercícios</h1>
+    <main>
+        <div class="exercises-view">
+            <h1 class="title">Create Workout Sheet</h1>
 
-        <div class="form-group">
-            <label for="muscleGroup">Grupo Muscular</label>
-            <input type="text" v-model="muscleGroup" placeholder="Ex: Peito, Costas, Pernas" />
-        </div>
-
-        <div class="exercise-list">
-            <h2>Exercícios</h2>
-            <div v-for="(exercise, index) in exercises" :key="index" class="exercise-item">
-                <input type="text" v-model="exercise.name" placeholder="Nome do exercício" />
-                <input type="number" v-model.number="exercise.sets" placeholder="Número de séries" />
-
-                <div class="series-inputs">
-                    <span v-for="(serie, sIndex) in exercise.sets" :key="sIndex">
-                        <input type="number" v-model="exercise.series[sIndex]" placeholder="Reps da série" />
-                    </span>
-                </div>
-
-                <button @click="removeExercise(index)">Remover</button>
+            <div class="form-group">
+                <label for="muscleGroup">Muscle Group</label>
+                <input type="text" v-model="muscleGroup" placeholder="e.g., Chest, Back, Legs" />
             </div>
-            <button @click="addExercise">Adicionar Exercício</button>
+
+            <div class="exercise-list">
+                <h2>Exercises</h2>
+                <div v-for="(exercise, index) in exercises" :key="index" class="exercise-item">
+                    <input type="text" v-model="exercise.name" placeholder="Exercise name" />
+                    <input type="number" v-model.number="exercise.sets" placeholder="Number of sets" />
+
+                    <div class="series-inputs">
+                        <span v-for="(serie, sIndex) in exercise.sets" :key="sIndex">
+                            <input type="number" v-model="exercise.series[sIndex]" placeholder="Reps per set" />
+                        </span>
+                    </div>
+
+                    <button @click="removeExercise(index)">Remove</button>
+                </div>
+                <button @click="addExercise" class="add-btn">Add Exercise</button>
+            </div>
+
+            <textarea v-model="comment" placeholder="Comment (optional)"></textarea>
+
+            <button class="submit-btn" @click="submitWorkout">Save Workout</button>
+
+            <div class="workout-sheets">
+                <h2>Saved Workouts</h2>
+                <ul>
+                    <li v-for="sheet in workoutSheets" :key="sheet.id">
+                        <strong>{{ sheet.muscleGroup }}</strong> - {{ sheet.formattedDate }}
+
+                        <ul>
+                            <li v-for="exercise in sheet.formattedExercises" :key="exercise.name">
+                                <strong>{{ exercise.name }}</strong> - {{ exercise.sets }} sets of {{ exercise.reps }}
+                                reps
+                            </li>
+                        </ul>
+                        <p v-if="sheet.comment" class="workout-comment"><strong>Comment:</strong>{{ sheet.comment }}</p>
+                    </li>
+                </ul>
+            </div>
         </div>
-
-        <button class="submit-btn" @click="submitWorkout">Salvar Ficha</button>
-    </div>
+    </main>
 </template>
-
 
 <script>
 import axios from 'axios';
@@ -39,18 +59,13 @@ export default {
             user: {},
             muscleGroup: '',
             exercises: [],
-            workoutSheets: []
+            workoutSheets: [],
+            comment: '',
         };
     },
     methods: {
-        addExercise() {
-            this.exercises.push({ name: '', sets: '', series: [] });
-        },
-        removeExercise(index) {
-            this.exercises.splice(index, 1);
-        },
-        async submitWorkout() {
 
+        loadUserFromToken() {
             const token = sessionStorage.getItem("token");
             if (token) {
                 const payload = jwtDecode(token);
@@ -62,56 +77,108 @@ export default {
                     username: payload.username || null,
                 };
             }
+        },
 
+        addExercise() {
+            this.exercises.push({ name: '', sets: '', series: [] });
+        },
+        removeExercise(index) {
+            this.exercises.splice(index, 1);
+        },
+        async submitWorkout() {
             if (!this.muscleGroup.trim() || this.exercises.length === 0) {
-                alert("Preencha todos os campos antes de salvar!");
+                alert("Please fill in all fields before saving!");
                 return;
             }
 
-            // Transformar os valores de séries em números
+            // Format the exercises and include the comment
             const formattedExercises = this.exercises.map(exercise => ({
                 name: exercise.name,
                 sets: parseInt(exercise.sets, 10),
-                series: exercise.series.map(s => parseInt(s, 10))
+                series: exercise.series.map(s => parseInt(s, 10)),
             }));
 
             const workoutData = {
                 muscleGroup: this.muscleGroup,
                 exercises: formattedExercises,
-                userId: this.user.id  // Incluindo o userId aqui
+                userId: this.user.id,
+                comment: this.comment,
             };
 
             try {
                 const response = await axios.post('http://localhost:3000/exercise/workout_sheet', workoutData);
-                alert("Ficha salva com sucesso!");
-
-                // Adiciona a ficha recém-criada na lista local
-                this.workoutSheets.push(response.data);
-
-                // Limpa os campos após o envio
+                alert("Workout saved successfully!");
+                this.fetchWorkoutSheet()
+                // Clear fields after submission
                 this.muscleGroup = '';
                 this.exercises = [];
             } catch (error) {
-                console.error("Erro ao salvar a ficha:", error);
-                alert("Erro ao salvar a ficha, tente novamente.");
+                console.error("Error saving the workout:", error);
+                alert("Error saving the workout, please try again.");
+            }
+        },
+
+        async fetchWorkoutSheet() {
+            try {
+                const response = await axios.get(`http://localhost:3000/exercise/workout_sheets/${this.user.id}`);
+                const result = response.data;
+                console.log(result);
+
+                if (result.success) {
+                    this.workoutSheets = result.workoutSheets
+                        .map(sheet => ({
+                            ...sheet,
+                            formattedDate: new Date(sheet.createdAt).toLocaleDateString("en-US"),
+                            formattedExercises: sheet.exercises.split("; ").map(exercise => {
+                                const [name, sets, reps] = exercise.split("|");
+                                return {
+                                    name,
+                                    sets,
+                                    reps: reps.split("-").join(", "), // Format reps correctly
+                                };
+                            }),
+                            comment: sheet.comment ?? "" // Ensure the comment is included
+                        }))
+                        .sort((a, b) => b.id - a.id); // Sort sheets by ID in descending order
+                } else {
+                    console.log("Error loading workout sheets:", result);
+                }
+            } catch (error) {
+                console.error('Error fetching workout sheets:', error);
             }
         }
 
-    }
+    },
+    mounted() {
+
+        const token = sessionStorage.getItem("token");
+
+        if (!token) {
+            this.$router.push('/signin');
+            return;
+        }
+        this.loadUserFromToken();
+        this.fetchWorkoutSheet();
+
+    },
 };
 </script>
 
 
+
 <style scoped>
 main {
-    flex-direction: column;
+    display: flex;
+    justify-content: center;
     align-items: center;
-    min-height: 90vh;
-    padding: 6rem 0;
+    max-height: 90vh;
+    padding: 3.8rem 0;
 }
 
 .exercises-view {
-    JUSTIFY-ITEMS: CENTER;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     max-width: 80%;
     margin: auto;
     padding: 20px;
@@ -123,14 +190,17 @@ main {
 .title {
     text-align: center;
     margin-bottom: 20px;
+    font-size: 1.8rem;
 }
 
 .form-group {
+    text-align: center;
+    display: contents;
     margin-bottom: 15px;
 }
 
-input {
-    width: 100%;
+input,
+textarea {
     padding: 8px;
     margin-top: 5px;
     border: 1px solid #ccc;
@@ -148,10 +218,10 @@ input {
     margin-bottom: 10px;
 }
 
-.set-item {
-    display: flex;
+.series-inputs {
+    text-align: center;
+    display: inline-block;
     gap: 10px;
-    align-items: center;
 }
 
 button {
@@ -161,10 +231,17 @@ button {
     padding: 10px;
     border-radius: 4px;
     cursor: pointer;
+    transition: background 0.3s ease;
 }
 
 button:hover {
     background: #0056b3;
+}
+
+.add-btn {
+    width: 100%;
+    margin-top: 15px;
+    background-color: #28a745;
 }
 
 .submit-btn {
@@ -175,7 +252,6 @@ button:hover {
 .workout-sheets {
     margin-top: 30px;
     background: #fff;
-    padding: 15px;
     border-radius: 8px;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
@@ -187,12 +263,56 @@ button:hover {
 .workout-sheets ul {
     list-style-type: none;
     padding: 0;
+    margin: 0;
+    max-height: 300px; /* Defina o valor máximo que você deseja */
+    overflow-y: auto; /* Permite a rolagem vertical */
 }
+
 
 .workout-sheets li {
     background: #e9ecef;
     padding: 10px;
-    margin: 5px 0;
+    margin: 15px;
     border-radius: 5px;
+}
+
+@media (max-width: 768px) {
+    .exercises-view {
+        max-width: 90%;
+        padding: 15px;
+    }
+
+    .title {
+        font-size: 1.6rem;
+    }
+
+    .form-group input,
+    .exercise-item input,
+    .add-btn,
+    .submit-btn {
+        font-size: 0.9rem;
+    }
+
+    .exercise-item {
+        gap: 5px;
+    }
+
+    .series-inputs input {
+        width: 30%;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .form-group input,
+    .exercise-item input,
+    .add-btn,
+    .submit-btn {
+        font-size: 0.8rem;
+    }
+
+    .series-inputs input {
+        width: 50%;
+    }
 }
 </style>
