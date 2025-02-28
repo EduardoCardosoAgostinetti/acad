@@ -11,8 +11,8 @@ Esta é uma API de gerenciamento de conta e exercícios, com funcionalidades com
 - **Corpo da requisição:**
   ```json
   {
-    "username": "rjnhxf",
-    "password": "123456"
+    "username": "username",
+    "password": "password"
   }
   ```
 - **Descrição:** Realiza o login do usuário com o nome de usuário e senha fornecidos.
@@ -25,7 +25,7 @@ Esta é uma API de gerenciamento de conta e exercícios, com funcionalidades com
 - **Corpo da requisição:**
   ```json
   {
-    "email": "eduardo.c.01@hotmail.com"
+    "email": "email"
   }
   ```
 - **Descrição:** Envia um código de redefinição de senha para o e-mail fornecido.
@@ -38,10 +38,10 @@ Esta é uma API de gerenciamento de conta e exercícios, com funcionalidades com
 - **Corpo da requisição:**
   ```json
   {
-    "email": "eduardo.c.01@hotmail.com",
-    "resetCode": "147881901",
-    "password": "1234567",
-    "confirmPassword": "1234567"
+    "email": "email",
+    "resetCode": "resetCode",
+    "password": "password",
+    "confirmPassword": "confirmPassword"
   }
   ```
 - **Descrição:** Permite redefinir a senha do usuário com o código de redefinição recebido por e-mail.
@@ -54,12 +54,12 @@ Esta é uma API de gerenciamento de conta e exercícios, com funcionalidades com
 - **Corpo da requisição:**
   ```json
   {
-    "name": "Eduardo Cardoso Agostinetti",
-    "email": "eduardo.c.01@hotmail.com",
-    "username": "1",
-    "password": "1",
-    "confirmPassword": "1",
-    "birthdate": "1990-01-01"
+    "name": "name",
+    "email": "email",
+    "username": "username",
+    "password": "password",
+    "confirmPassword": "confirmPassword",
+    "birthdate": "birthdate"
   }
   ```
 - **Descrição:** Cria uma nova conta de usuário com os dados fornecidos.
@@ -115,12 +115,14 @@ Esta é uma API de gerenciamento de conta e exercícios, com funcionalidades com
 - **Corpo da requisição:**
   ```json
   {
-    "muscleGroup": "Peito",
+    "muscleGroup": "muscleGroup",
     "exercises": [
-      { "name": "Supino Reto", "sets": 4, "series": [12, 10, 8, 6] },
-      { "name": "Crucifixo", "sets": 3, "series": [15, 12, 10] }
+      { "name": "name", "sets": sets, "series": [series, series, series, series] },
+      { "name": "name", "sets": sets, "series": [series, series, series] }
+      { "name": "name", "sets": sets, "series": [series, series, series] }
+      { "name": "name", "sets": sets, "series": [series, series, series, series] },
     ],
-    "userID": 1
+    "userId": userId
   }
   ```
 - **Descrição:** Cria uma ficha de treino para o usuário, especificando o grupo muscular, os exercícios e as séries.
