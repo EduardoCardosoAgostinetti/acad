@@ -117,10 +117,10 @@ Esta é uma API de gerenciamento de conta e exercícios, com funcionalidades com
   {
     "muscleGroup": "muscleGroup",
     "exercises": [
-      { "name": "name", "sets": sets, "series": [series, series, series, series] },
-      { "name": "name", "sets": sets, "series": [series, series, series] }
-      { "name": "name", "sets": sets, "series": [series, series, series] }
-      { "name": "name", "sets": sets, "series": [series, series, series, series] },
+      { "name": "name", "sets": 4, "series": [1, 1, 1, 1] },
+      { "name": "name", "sets": 3, "series": [1, 1, 1] }
+      { "name": "name", "sets": 3, "series": [1, 1, 1] }
+      { "name": "name", "sets": 4, "series": [1, 1, 1, 1] },
     ],
     "userId": userId
   }
