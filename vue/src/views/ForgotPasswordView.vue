@@ -22,7 +22,7 @@
 import axios from 'axios';
 import FormComponent from '@/components/FormComponent.vue';
 import WarningsComponent from '@/components/WarningsComponent.vue';
-
+import { config } from '@/js/auth.js';
 export default {
     name: 'ForgotPasswordView',
     components: {
@@ -53,7 +53,7 @@ export default {
 
             this.isSubmitting = true;
             try {
-                const response = await axios.post('http://localhost:3000/forgotPassword', this.formData);
+                const response = await axios.post(`${config.apiUrl}/forgotPassword`, this.formData);
                 if (response.data.success) {
                     this.messageType = 'success';
                     this.message = 'Code sent. Redirecting to password reset in 5 seconds';

@@ -28,7 +28,7 @@ import axios from 'axios';
 import FormComponent from '@/components/FormComponent.vue';
 import WarningsComponent from '@/components/WarningsComponent.vue';
 import { authToken } from '@/js/auth.js';
-
+import { config } from '@/js/auth.js';
 export default {
   name: 'SigninView',
   components: {
@@ -54,7 +54,7 @@ export default {
 
       this.isSubmitting = true;
       try {
-        const response = await axios.post('http://localhost:3000/signin', this.formData);
+        const response = await axios.post(`${config.apiUrl}/signin`, this.formData);
 
         if (response.data.success) {
           this.messageType = 'success';

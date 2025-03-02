@@ -10,7 +10,7 @@
 import axios from 'axios';
 import FormComponent from '@/components/FormComponent.vue';
 import WarningsComponent from '@/components/WarningsComponent.vue'
-
+import { config } from '@/js/auth.js';
 export default {
     name: 'SignupView',
     components: {
@@ -40,7 +40,7 @@ export default {
             this.isSubmitting = true;
             try {
 
-                const response = await axios.post('http://localhost:3000/signup', this.formData);
+                const response = await axios.post(`${config.apiUrl}/signup`, this.formData);
 
 
                 if (response.data.success) {

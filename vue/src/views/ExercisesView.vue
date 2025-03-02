@@ -52,7 +52,7 @@
 <script>
 import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
-
+import { config } from '@/js/auth.js';
 export default {
     data() {
         return {
@@ -106,7 +106,7 @@ export default {
             };
 
             try {
-                const response = await axios.post('http://localhost:3000/exercise/workout_sheet', workoutData);
+                const response = await axios.post(`${config.apiUrl}/exercise/workout_sheet`, workoutData);
                 alert("Workout saved successfully!");
                 this.fetchWorkoutSheet()
                 // Clear fields after submission
@@ -120,7 +120,7 @@ export default {
 
         async fetchWorkoutSheet() {
             try {
-                const response = await axios.get(`http://localhost:3000/exercise/workout_sheets/${this.user.id}`);
+                const response = await axios.get(`${config.apiUrl}/exercise/workout_sheets/${this.user.id}`);
                 const result = response.data;
                 console.log(result);
 
