@@ -21,10 +21,32 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_LISTEN_PORT: 5050    
     ports:
-      - "5050:80"
+      - "5050:5050"
     depends_on:
       - postgres
-      
+
+  http_container:
+    build: ../http
+    container_name: http_container
+    restart: always
+    environment:
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+
+  vue_app:
+    build: ../vue
+    container_name: vue_container
+    restart: always
+    ports:
+      - "5000:5000"  # Alterando para 5000
+    depends_on:
+      - http_container
+
+
 volumes:
   postgres_data:

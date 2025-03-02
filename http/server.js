@@ -23,5 +23,5 @@ app.use('/upload', upload);
 app.use('/exercise', exercise);
 
 app.listen(PORT, () => {
-    console.log(` HTTP running at: http://localhost:3000`);
+    console.log(` HTTP running at port: 3000`);
 });
