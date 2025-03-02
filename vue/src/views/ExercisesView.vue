@@ -85,6 +85,7 @@ export default {
         removeExercise(index) {
             this.exercises.splice(index, 1);
         },
+
         async submitWorkout() {
             if (!this.muscleGroup.trim() || this.exercises.length === 0) {
                 alert("Please fill in all fields before saving!");
@@ -150,7 +151,7 @@ export default {
 
     },
 
-    beforeCreate() {
+    created() {
 
         const token = sessionStorage.getItem("token");
 

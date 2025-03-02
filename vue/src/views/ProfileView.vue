@@ -7,7 +7,7 @@
                         <img v-if="profilePicture"
                             :src="config.apiUrl + '/uploads/profilePictures/' + profilePicture"
                             alt="Foto de Perfil" class="profile-image" @click="triggerProfileImageUpload" />
-                            <img v-else :src="defaultProfilePicture" alt="Foto de Perfil" class="profile-image"
+                            <img v-else :src="config.apiUrl + '/uploads/profilePictures/' + defaultProfilePicture" alt="Foto de Perfil" class="profile-image"
                             @click="triggerProfileImageUpload" />
                         <input type="file" ref="profileImageInput" @change="handleProfilePictureUpload" accept="image/*"
                             style="display: none;" />
@@ -92,7 +92,7 @@ export default {
             },
             user: {},
             profilePicture: null,
-            defaultProfilePicture: config.apiUrl + '/uploads/profilePictures/default.jpg',
+            defaultProfilePicture: 'default.jpg',
         };
     },
     methods: {
@@ -272,7 +272,7 @@ export default {
 
 
     },
-    beforeCreate(){
+     created(){
         const token = sessionStorage.getItem("token");
 
         if (!token) {
