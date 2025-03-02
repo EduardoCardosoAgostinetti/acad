@@ -272,9 +272,7 @@ export default {
 
 
     },
-
-    mounted() {
-
+    beforeCreate(){
         const token = sessionStorage.getItem("token");
 
         if (!token) {
@@ -285,7 +283,7 @@ export default {
         this.loadUserFromToken();
         this.fetchProfilePicture();
         this.fetchGalleryImages();
-    }
+    },
 
 };
 </script>

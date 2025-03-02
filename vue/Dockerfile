@@ -4,6 +4,10 @@ WORKDIR /app
 
 COPY package*.json ./
 RUN npm install
+
+# Instalar o Vite globalmente
+RUN npm install -g vite
+
 COPY . .
 
 RUN npm run build

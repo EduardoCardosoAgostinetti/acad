@@ -62,7 +62,7 @@ export default {
           sessionStorage.setItem('token', response.data.token);
           authToken.value = response.data.token;
 
-          this.$router.push({ name: 'home' });
+          this.$router.push({ name: 'profile' });
         } else {
           this.messageType = 'error';
           this.message = response.data.message;

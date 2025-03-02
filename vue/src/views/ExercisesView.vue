@@ -149,7 +149,8 @@ export default {
         }
 
     },
-    mounted() {
+
+    beforeCreate() {
 
         const token = sessionStorage.getItem("token");
 
