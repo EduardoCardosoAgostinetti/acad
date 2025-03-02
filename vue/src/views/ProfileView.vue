@@ -5,9 +5,9 @@
                 <div class="profile-content">
                     <div class="profile-image-container">
                         <img v-if="profilePicture"
-                            :src="'http://localhost:3000/uploads/profilePictures/' + profilePicture"
+                            :src="config.apiUrl + '/uploads/profilePictures/' + profilePicture"
                             alt="Foto de Perfil" class="profile-image" @click="triggerProfileImageUpload" />
-                        <img v-else :src="defaultProfilePicture" alt="Foto de Perfil" class="profile-image"
+                            <img v-else :src="defaultProfilePicture" alt="Foto de Perfil" class="profile-image"
                             @click="triggerProfileImageUpload" />
                         <input type="file" ref="profileImageInput" @change="handleProfilePictureUpload" accept="image/*"
                             style="display: none;" />
@@ -39,7 +39,7 @@
                             <!-- Exibindo a data de criação -->
                             <p class="image-date">{{ new Date(image.createdAt).toLocaleDateString() }}</p>
                         </div>
-                        <img :src="'http://localhost:3000' + image.filePath" alt="Gallery Image"
+                        <img :src="`${config.apiUrl}` + image.filePath" alt="Gallery Image"
                             @click="openModal(image)" />
                         <button v-if="isEditing" @click="deleteImage(image)" class="delete-btn">X</button>
                     </div>
@@ -51,7 +51,7 @@
             <div v-if="isModalOpen" class="modal" @click="closeModal">
                 <div class="modal-content" @click.stop>
 
-                    <img :src="'http://localhost:3000' + modalImage.filePath" alt="Expanded Image" />
+                    <img :src="config.apiUrl + modalImage.filePath" alt="Expanded Image" />
                 </div>
             </div>
 
@@ -60,12 +60,14 @@
 </template>
 
 <script>
+import { config } from '@/js/auth.js';
 import { jwtDecode } from "jwt-decode";
 
 export default {
     name: "UserProfile",
     data() {
         return {
+            config,
             isModalOpen: false,
             modalImage: null,
             isEditing: false,
@@ -90,7 +92,7 @@ export default {
             },
             user: {},
             profilePicture: null,
-            defaultProfilePicture: "default.jpg",
+            defaultProfilePicture: config.apiUrl + '/uploads/profilePictures/default.jpg',
         };
     },
     methods: {
@@ -105,7 +107,7 @@ export default {
             if (!confirmed) return;  // Se o usuário não confirmar, cancela a exclusão
 
             try {
-                const response = await fetch(`http://localhost:3000/upload/gallery/${image.imageId}`, {
+                const response = await fetch(`${config.apiUrl}/upload/gallery/${image.imageId}`, {
                     method: 'DELETE',
                 });
 
@@ -161,7 +163,7 @@ export default {
                 formData.append('userId', this.user.id);
 
                 try {
-                    const response = await fetch('http://localhost:3000/upload/profilePicture', {
+                    const response = await fetch(`${config.apiUrl}/upload/profilePicture`, {
                         method: 'POST',
                         body: formData,
                     });
@@ -180,7 +182,7 @@ export default {
 
         async fetchProfilePicture() {
             try {
-                const response = await fetch(`http://localhost:3000/upload/profilePicture/${this.user.id}`, {
+                const response = await fetch(`${config.apiUrl}/upload/profilePicture/${this.user.id}`, {
                     method: 'GET',
                 });
                 const result = await response.json();
@@ -204,7 +206,7 @@ export default {
             formData.append('userId', this.user.id); // Garante que o userId é enviado corretamente
 
             try {
-                const response = await fetch(`http://localhost:3000/upload/gallery/${this.activeGallery}`, {
+                const response = await fetch(`${config.apiUrl}/upload/gallery/${this.activeGallery}`, {
                     method: 'POST',
                     body: formData,
                 });
@@ -230,7 +232,7 @@ export default {
 
         async fetchGalleryImages() {
             try {
-                const response = await fetch(`http://localhost:3000/upload/gallery/${this.user.id}`, {
+                const response = await fetch(`${config.apiUrl}/upload/gallery/${this.user.id}`, {
                     method: 'GET',
                 });
 
