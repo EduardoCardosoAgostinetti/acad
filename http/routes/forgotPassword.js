@@ -57,9 +57,6 @@ router.post('/', express.json(), async (req, res) => {
              <p>This code will expire in <strong>25 minutes</strong>.</p>
              <p>If you did not request this, please ignore this email.</p>`,
     });
-
-    console.log(`Reset code for ${email}: ${resetCode}`);
-
     return res.status(200).json({
       success: true,
       message: 'Reset code sent to your email.',

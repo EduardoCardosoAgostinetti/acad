@@ -1,5 +1,6 @@
 <template>
     <WarningsComponent v-if="message" :message="message" :type="messageType" :key="componentKey" />
+    <LoadingComponent :loading="isLoading"/>
     <main>
         <div class="form-container">
             <FormComponent :inputs="formInputs" :button-text="isSubmitting ? 'Sending...' : 'Send Code'"
@@ -9,11 +10,6 @@
             <p class="back-to-login">
                 Remembered your password? <router-link to="/signin">Click here</router-link>
             </p>
-
-            <div v-if="isSubmitting" class="loading-container">
-                <div class="spinner"></div>
-                <p>Sending reset code, please wait...</p>
-            </div>
         </div>
     </main>
 </template>
@@ -23,14 +19,17 @@ import axios from 'axios';
 import FormComponent from '@/components/FormComponent.vue';
 import WarningsComponent from '@/components/WarningsComponent.vue';
 import { config } from '@/js/auth.js';
+import LoadingComponent from '@/components/LoadingComponent.vue';
 export default {
     name: 'ForgotPasswordView',
     components: {
         FormComponent,
         WarningsComponent,
+        LoadingComponent,
     },
     data() {
         return {
+            isLoading: false,
             formInputs: [
                 {
                     type: 'email',
@@ -49,6 +48,7 @@ export default {
     },
     methods: {
         async handleFormSubmit() {
+            this.isLoading = true;
             if (this.isSubmitting) return;
 
             this.isSubmitting = true;
@@ -79,6 +79,7 @@ export default {
                 console.error('Error while requesting code:', error);
             } finally {
                 this.isSubmitting = false;
+                this.isLoading = false;
             }
         }
     }
@@ -103,27 +104,5 @@ main {
     margin-top: 0.5rem;
 }
 
-/* Spinner styles */
-.loading-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 1rem;
-}
 
-.spinner {
-    border: 4px solid rgba(0, 0, 0, 0.1);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border-left-color: #09f;
-    animation: spin 1s linear infinite;
-    margin-bottom: 0.5rem;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
 </style>

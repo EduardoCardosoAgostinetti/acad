@@ -1,14 +1,14 @@
 <template>
+    <LoadingComponent :loading="isLoading"/>
     <main>
         <div class="container-main">
             <div class="profile-container">
                 <div class="profile-content">
                     <div class="profile-image-container">
-                        <img v-if="profilePicture"
-                            :src="config.apiUrl + '/uploads/profilePictures/' + profilePicture"
+                        <img v-if="profilePicture" :src="config.apiUrl + '/uploads/profilePictures/' + profilePicture"
                             alt="Foto de Perfil" class="profile-image" @click="triggerProfileImageUpload" />
-                            <img v-else :src="config.apiUrl + '/uploads/profilePictures/' + defaultProfilePicture" alt="Foto de Perfil" class="profile-image"
-                            @click="triggerProfileImageUpload" />
+                        <img v-else :src="config.apiUrl + '/uploads/profilePictures/' + defaultProfilePicture"
+                            alt="Foto de Perfil" class="profile-image" @click="triggerProfileImageUpload" />
                         <input type="file" ref="profileImageInput" @change="handleProfilePictureUpload" accept="image/*"
                             style="display: none;" />
                     </div>
@@ -39,8 +39,7 @@
                             <!-- Exibindo a data de criação -->
                             <p class="image-date">{{ new Date(image.createdAt).toLocaleDateString() }}</p>
                         </div>
-                        <img :src="`${config.apiUrl}` + image.filePath" alt="Gallery Image"
-                            @click="openModal(image)" />
+                        <img :src="`${config.apiUrl}` + image.filePath" alt="Gallery Image" @click="openModal(image)" />
                         <button v-if="isEditing" @click="deleteImage(image)" class="delete-btn">X</button>
                     </div>
                 </div>
@@ -62,11 +61,16 @@
 <script>
 import { config } from '@/js/auth.js';
 import { jwtDecode } from "jwt-decode";
+import LoadingComponent from '@/components/LoadingComponent.vue';
 
 export default {
     name: "UserProfile",
+    components: {
+        LoadingComponent,
+    },
     data() {
         return {
+            isLoading: false,
             config,
             isModalOpen: false,
             modalImage: null,
@@ -102,7 +106,7 @@ export default {
         },
 
         async deleteImage(image) {
-            // Exibe o alerta de confirmação
+            this.isLoading = true;
             const confirmed = confirm("Are you sure you want to delete this image?");
             if (!confirmed) return;  // Se o usuário não confirmar, cancela a exclusão
 
@@ -121,6 +125,8 @@ export default {
                 }
             } catch (error) {
                 console.error('Erro ao excluir imagem:', error);
+            } finally {
+                this.isLoading = false;
             }
         },
 
@@ -156,6 +162,7 @@ export default {
         },
 
         async handleProfilePictureUpload(event) {
+            this.isLoading = true;
             const file = event.target.files[0];
             if (file) {
                 const formData = new FormData();
@@ -176,11 +183,14 @@ export default {
                     }
                 } catch (error) {
                     console.error('Erro ao enviar a imagem de perfil:', error);
+                }finally{
+                    this.isLoading = false;
                 }
             }
         },
 
         async fetchProfilePicture() {
+            this.isLoading = true;
             try {
                 const response = await fetch(`${config.apiUrl}/upload/profilePicture/${this.user.id}`, {
                     method: 'GET',
@@ -194,10 +204,13 @@ export default {
                 }
             } catch (error) {
                 console.error('Erro ao buscar a imagem de perfil:', error);
+            }finally{
+                this.isLoading = false;
             }
         },
 
         async handleGalleryUpload(event) {
+            this.isLoading = true;
             const file = event.target.files[0];
             if (!file) return;
 
@@ -227,10 +240,13 @@ export default {
                 }
             } catch (error) {
                 console.error('Erro ao fazer upload da imagem da galeria:', error);
+            }finally{
+                this.isLoading = false;
             }
         },
 
         async fetchGalleryImages() {
+            this.isLoading = true;
             try {
                 const response = await fetch(`${config.apiUrl}/upload/gallery/${this.user.id}`, {
                     method: 'GET',
@@ -266,13 +282,15 @@ export default {
                 }
             } catch (error) {
                 console.error('Erro ao carregar imagens das galerias:', error);
+            }finally{
+                this.isLoading = false;
             }
         },
 
 
 
     },
-     created(){
+    created() {
         const token = sessionStorage.getItem("token");
 
         if (!token) {
