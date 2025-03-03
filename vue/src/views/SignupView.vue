@@ -1,5 +1,6 @@
 <template>
     <WarningsComponent v-if="message" :message="message" :type="messageType" :key="componentKey" />
+    <LoadingComponent :loading="isLoading" />
     <main>
         <FormComponent :inputs="formInputs" :button-text="'Sign Up'" :button-class="'btn-primary'"
             :title-text="'Sign Up'" @submit="handleFormSubmit" v-model="formData" />
@@ -11,14 +12,17 @@ import axios from 'axios';
 import FormComponent from '@/components/FormComponent.vue';
 import WarningsComponent from '@/components/WarningsComponent.vue'
 import { config } from '@/js/auth.js';
+import LoadingComponent from '@/components/LoadingComponent.vue';
 export default {
     name: 'SignupView',
     components: {
         FormComponent,
         WarningsComponent,
+        LoadingComponent
     },
     data() {
         return {
+            isLoading: false,
             formInputs: [
                 { type: 'text', name: 'name', label: 'Full Name', placeholder: 'Enter your full name', required: true },
                 { type: 'email', name: 'email', label: 'Email', placeholder: 'Enter your email', required: true },
@@ -35,6 +39,7 @@ export default {
     },
     methods: {
         async handleFormSubmit() {
+            this.isLoading = true;
             if (this.isSubmitting) return;
 
             this.isSubmitting = true;
@@ -66,9 +71,9 @@ export default {
                 this.messageType = 'error';
                 this.message = 'An error occurred. Please try again later.';
                 this.componentKey = Date.now();
-                console.error('Error during signup:', error);
             } finally {
                 this.isSubmitting = false;
+                this.isLoading = false;
             }
         }
     }

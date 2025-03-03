@@ -5,6 +5,7 @@
       :type="messageType"
       :key="componentKey"
     />
+    <LoadingComponent :loading="isLoading"/>
     <main>
       <div class="form-container">
         <FormComponent
@@ -32,14 +33,18 @@
   import FormComponent from '@/components/FormComponent.vue';
   import WarningsComponent from '@/components/WarningsComponent.vue';
   import { config } from '@/js/auth.js';
+  import LoadingComponent from '@/components/LoadingComponent.vue';
+
   export default {
     name: 'ResetPasswordView',
     components: {
       FormComponent,
       WarningsComponent,
+      LoadingComponent,
     },
     data() {
       return {
+        isLoading: false,
         formInputs: [
           {
             type: 'email',
@@ -79,6 +84,7 @@
     },
     methods: {
       async handleFormSubmit() {
+        this.isLoading = true;
         if (this.isSubmitting) return;
   
         const { password, confirmPassword } = this.formData;
@@ -94,12 +100,12 @@
           const response = await axios.post(`${config.apiUrl}/forgotPassword/resetPassword`, this.formData);
           if (response.data.success) {
             this.messageType = 'success';
-            this.message = 'Password reset successfully. Redirecting to password reset in 5 seconds';
+            this.message = 'Password reset successfully. Redirecting to login in 5 seconds';
 
             let countdown = 5;
                     const interval = setInterval(() => {
                         countdown--;
-                        this.message = `Password reset successfully. Redirecting to password reset in ${countdown} seconds`;
+                        this.message = `Password reset successfully. Redirecting to login in ${countdown} seconds`;
 
                         if (countdown === 0) {
                             clearInterval(interval);
@@ -115,9 +121,9 @@
         } catch (error) {
           this.messageType = 'error';
           this.message = 'An error occurred. Please try again later.';
-          console.error('Error while resetting password:', error);
         } finally {
           this.isSubmitting = false;
+          this.isLoading = false;
         }
       },
     },

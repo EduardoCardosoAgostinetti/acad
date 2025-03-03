@@ -1,4 +1,6 @@
 <template>
+    <LoadingComponent :loading="isLoading" />
+    <WarningsComponent v-if="message" :message="message" :type="messageType" :key="componentKey" />
     <main>
         <div class="exercises-view">
             <h1 class="title">Create Workout Sheet</h1>
@@ -53,9 +55,19 @@
 import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
 import { config } from '@/js/auth.js';
+import LoadingComponent from '@/components/LoadingComponent.vue';
+import WarningsComponent from '@/components/WarningsComponent.vue';
 export default {
+    components: {
+        LoadingComponent,
+        WarningsComponent,
+    },
     data() {
         return {
+            isLoading: false,
+            messageType: '',
+            message: '',
+            componentKey: Date.now(),
             user: {},
             muscleGroup: '',
             exercises: [],
@@ -85,8 +97,9 @@ export default {
         removeExercise(index) {
             this.exercises.splice(index, 1);
         },
-
+        
         async submitWorkout() {
+            this.isLoading = true;
             if (!this.muscleGroup.trim() || this.exercises.length === 0) {
                 alert("Please fill in all fields before saving!");
                 return;
@@ -108,22 +121,25 @@ export default {
 
             try {
                 const response = await axios.post(`${config.apiUrl}/exercise/workout_sheet`, workoutData);
-                alert("Workout saved successfully!");
+                this.messageType = 'success';
+                this.message = "Workout sheet saved";
                 this.fetchWorkoutSheet()
                 // Clear fields after submission
                 this.muscleGroup = '';
                 this.exercises = [];
             } catch (error) {
-                console.error("Error saving the workout:", error);
-                alert("Error saving the workout, please try again.");
+                this.messageType = 'error';
+                this.message = "Error saving the workout";
+            } finally {
+                this.isLoading = false;
             }
         },
 
         async fetchWorkoutSheet() {
+            this.isLoading = true;
             try {
                 const response = await axios.get(`${config.apiUrl}/exercise/workout_sheets/${this.user.id}`);
                 const result = response.data;
-                console.log(result);
 
                 if (result.success) {
                     this.workoutSheets = result.workoutSheets
@@ -146,6 +162,8 @@ export default {
                 }
             } catch (error) {
                 console.error('Error fetching workout sheets:', error);
+            }finally{
+                this.isLoading = false;
             }
         }
 
@@ -266,8 +284,10 @@ button:hover {
     list-style-type: none;
     padding: 0;
     margin: 0;
-    max-height: 300px; /* Defina o valor máximo que você deseja */
-    overflow-y: auto; /* Permite a rolagem vertical */
+    max-height: 300px;
+    /* Defina o valor máximo que você deseja */
+    overflow-y: auto;
+    /* Permite a rolagem vertical */
 }
 
 
