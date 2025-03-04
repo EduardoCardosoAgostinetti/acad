@@ -136,6 +136,52 @@ Esta é uma API de gerenciamento de conta e exercícios, com funcionalidades com
 
 ---
 
+### 12. **Criar entrada de dieta**
+- **URL:** `/diet/entries`  
+- **Método:** `POST`  
+- **Corpo da requisição:**
+  ```json
+  {
+    "mealType": "breakfast",
+    "foods": [
+      { "foodItem": "Eggs", "quantity": 2, "unit": "pcs" },
+      { "foodItem": "Oats", "quantity": 50, "unit": "g" }
+    ],
+    "calories": 350,
+    "userId": "userId",
+    "date": "2025-03-01T07:00:00Z"
+  }
+  ```  
+- **Descrição:** Cria uma entrada de dieta para o usuário, especificando o tipo de refeição, os alimentos, as calorias e a data.
+
+---
+
+### 13. **Obter entradas de dieta de um usuário**
+- **URL:** `/diet/entries/:userId`  
+- **Método:** `GET`  
+- **Descrição:** Retorna todas as entradas de dieta de um usuário, identificado pelo `userId`.
+
+---
+
+### 14. **Atualizar entrada de dieta**
+- **URL:** `/diet/entries/:entryId`  
+- **Método:** `PUT`  
+- **Corpo da requisição:**
+  ```json
+  {
+    "mealType": "lunch",
+    "foods": [
+      { "foodItem": "Chicken", "quantity": 150, "unit": "g" },
+      { "foodItem": "Rice", "quantity": 100, "unit": "g" }
+    ],
+    "calories": 500,
+    "date": "2025-03-02T12:00:00Z"
+  }
+  ```  
+- **Descrição:** Atualiza uma entrada de dieta existente, identificado pelo `entryId`, com novos dados.
+
+---
+
 ## Tecnologias Usadas
 - **Node.js** para o backend.
 - **Express** para criação das rotas.

@@ -47,6 +47,37 @@ router.get('/workout_sheets/:userId', async (req, res) => {
     }
   });
   
+  router.put('/workout_sheet/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { muscleGroup, exercises, comment } = req.body;
+
+        if (!muscleGroup || exercises.length === 0) {
+            return res.status(400).json({ error: 'Todos os campos são obrigatórios!' });
+        }
+
+        // Formatar os exercícios para salvar no banco
+        const exercisesString = exercises.map(exercise =>
+            `${exercise.name}|${exercise.sets}|${exercise.series.join('-')}`
+        ).join('; ');
+
+        const workoutSheet = await WorkoutSheet.findByPk(id);
+
+        if (!workoutSheet) {
+            return res.status(404).json({ error: 'Ficha de treino não encontrada!' });
+        }
+
+        workoutSheet.muscleGroup = muscleGroup;
+        workoutSheet.exercises = exercisesString;
+        workoutSheet.comment = comment;
+
+        await workoutSheet.save();
+
+        res.status(200).json({ success: true, message: 'Ficha de treino atualizada com sucesso!', workoutSheet });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao atualizar a ficha de treino', details: error.message });
+    }
+});
 
 
 module.exports = router;

@@ -2,7 +2,7 @@ const { Sequelize } = require('sequelize');
 
 // Configuração da conexão com o banco de dados PostgreSQL
 const sequelize = new Sequelize('sogoj', 'rjnhxf', '#Proibido10', {
-    host: '191.252.196.90',
+    host: 'localhost',
     dialect: 'postgres',
     logging: false, // Desativa todos os logs de consulta
 });

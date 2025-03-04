@@ -3,7 +3,7 @@
     <WarningsComponent v-if="message" :message="message" :type="messageType" :key="componentKey" />
     <main>
         <div class="exercises-view">
-            <h1 class="title">Create Workout Sheet</h1>
+            <h1 class="title">{{ isEditing ? 'Edit Workout Sheet' : 'Create Workout Sheet' }}</h1>
 
             <div class="form-group">
                 <label for="muscleGroup">Muscle Group</label>
@@ -29,21 +29,30 @@
 
             <textarea v-model="comment" placeholder="Comment (optional)"></textarea>
 
-            <button class="submit-btn" @click="submitWorkout">Save Workout</button>
+            <button class="submit-btn" @click="isEditing ? updateWorkout() : submitWorkout()">
+                {{ isEditing ? "Update Workout" : "Save Workout" }}
+            </button>
 
             <div class="workout-sheets">
                 <h2>Saved Workouts</h2>
                 <ul>
                     <li v-for="sheet in workoutSheets" :key="sheet.id">
-                        <strong>{{ sheet.muscleGroup }}</strong> - {{ sheet.formattedDate }}
-
+                    <strong> {{ sheet.formattedDate }}</strong>
+                    <br><br>
+                    <strong>{{ sheet.muscleGroup }}</strong>
                         <ul>
                             <li v-for="exercise in sheet.formattedExercises" :key="exercise.name">
-                                <strong>{{ exercise.name }}</strong> - {{ exercise.sets }} sets of {{ exercise.reps }}
+                                
+                               
+                                <strong>{{ exercise.name }}</strong> -
+                                {{ exercise.sets }} sets of {{ exercise.reps }}
                                 reps
                             </li>
                         </ul>
-                        <p v-if="sheet.comment" class="workout-comment"><strong>Comment:</strong>{{ sheet.comment }}</p>
+                        <p v-if="sheet.comment" class="workout-comment"><strong>Comment:</strong> {{ sheet.comment }}
+                        </p>
+
+                        <button class="edit-btn" @click="editWorkout(sheet)">Edit</button>
                     </li>
                 </ul>
             </div>
@@ -51,12 +60,14 @@
     </main>
 </template>
 
+
 <script>
 import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
 import { config } from '@/js/auth.js';
 import LoadingComponent from '@/components/LoadingComponent.vue';
 import WarningsComponent from '@/components/WarningsComponent.vue';
+
 export default {
     components: {
         LoadingComponent,
@@ -73,10 +84,11 @@ export default {
             exercises: [],
             workoutSheets: [],
             comment: '',
+            isEditing: false,
+            editingId: null,
         };
     },
     methods: {
-
         loadUserFromToken() {
             const token = sessionStorage.getItem("token");
             if (token) {
@@ -97,15 +109,14 @@ export default {
         removeExercise(index) {
             this.exercises.splice(index, 1);
         },
-        
+
         async submitWorkout() {
-            this.isLoading = true;
+
             if (!this.muscleGroup.trim() || this.exercises.length === 0) {
                 alert("Please fill in all fields before saving!");
                 return;
             }
-
-            // Format the exercises and include the comment
+            this.isLoading = true;
             const formattedExercises = this.exercises.map(exercise => ({
                 name: exercise.name,
                 sets: parseInt(exercise.sets, 10),
@@ -120,16 +131,48 @@ export default {
             };
 
             try {
-                const response = await axios.post(`${config.apiUrl}/exercise/workout_sheet`, workoutData);
+                await axios.post(`${config.apiUrl}/exercise/workout_sheet`, workoutData);
                 this.messageType = 'success';
-                this.message = "Workout sheet saved";
-                this.fetchWorkoutSheet()
-                // Clear fields after submission
-                this.muscleGroup = '';
-                this.exercises = [];
+                this.message = "Workout sheet saved!";
+                this.fetchWorkoutSheet();
+                this.clearForm();
             } catch (error) {
                 this.messageType = 'error';
-                this.message = "Error saving the workout";
+                this.message = "Error saving the workout!";
+            } finally {
+                this.isLoading = false;
+            }
+        },
+
+        async updateWorkout() {
+            this.isLoading = true;
+            if (!this.muscleGroup.trim() || this.exercises.length === 0) {
+                alert("Please fill in all fields before updating!");
+                this.isLoading = false;
+                return;
+            }
+
+            const formattedExercises = this.exercises.map(exercise => ({
+                name: exercise.name,
+                sets: parseInt(exercise.sets, 10),
+                series: exercise.series.map(s => parseInt(s, 10)),
+            }));
+
+            const workoutData = {
+                muscleGroup: this.muscleGroup,
+                exercises: formattedExercises,
+                comment: this.comment,
+            };
+
+            try {
+                await axios.put(`${config.apiUrl}/exercise/workout_sheet/${this.editingId}`, workoutData);
+                this.messageType = 'success';
+                this.message = "Workout sheet updated!";
+                this.fetchWorkoutSheet();
+                this.clearForm();
+            } catch (error) {
+                this.messageType = 'error';
+                this.message = "Error updating the workout!";
             } finally {
                 this.isLoading = false;
             }
@@ -142,47 +185,70 @@ export default {
                 const result = response.data;
 
                 if (result.success) {
-                    this.workoutSheets = result.workoutSheets
-                        .map(sheet => ({
-                            ...sheet,
-                            formattedDate: new Date(sheet.createdAt).toLocaleDateString("en-US"),
-                            formattedExercises: sheet.exercises.split("; ").map(exercise => {
-                                const [name, sets, reps] = exercise.split("|");
-                                return {
-                                    name,
-                                    sets,
-                                    reps: reps.split("-").join(", "), // Format reps correctly
-                                };
-                            }),
-                            comment: sheet.comment ?? "" // Ensure the comment is included
-                        }))
-                        .sort((a, b) => b.id - a.id); // Sort sheets by ID in descending order
-                } else {
-                    console.log("Error loading workout sheets:", result);
+                    this.workoutSheets = result.workoutSheets.map(sheet => ({
+                        ...sheet,
+                        formattedDate: new Date(sheet.createdAt).toLocaleDateString("en-US", {
+                            weekday: 'long', // Exibe o dia da semana
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                        }),
+                        formattedExercises: sheet.exercises.split("; ").map(exercise => {
+                            const [name, sets, reps] = exercise.split("|");
+                            return {
+                                name,
+                                sets,
+                                reps: reps.split("-").join(", "),
+                            };
+                        }),
+                        comment: sheet.comment ?? ""
+                    }));
+
+                    // Ordena os workoutSheets por data (decrescente)
+                    this.workoutSheets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                 }
             } catch (error) {
                 console.error('Error fetching workout sheets:', error);
-            }finally{
+            } finally {
                 this.isLoading = false;
             }
-        }
 
+        },
+
+
+        editWorkout(sheet) {
+            this.isEditing = true;
+            this.editingId = sheet.id;
+            this.muscleGroup = sheet.muscleGroup;
+            this.comment = sheet.comment;
+            this.exercises = sheet.formattedExercises.map(exercise => ({
+                name: exercise.name,
+                sets: parseInt(exercise.sets, 10),
+                series: exercise.reps.split(", ").map(rep => parseInt(rep, 10)),
+            }));
+        },
+
+        clearForm() {
+            this.isEditing = false;
+            this.editingId = null;
+            this.muscleGroup = '';
+            this.exercises = [];
+            this.comment = '';
+        }
     },
 
     created() {
-
         const token = sessionStorage.getItem("token");
-
         if (!token) {
             this.$router.push('/signin');
             return;
         }
         this.loadUserFromToken();
         this.fetchWorkoutSheet();
-
     },
 };
 </script>
+
 
 
 
@@ -191,8 +257,7 @@ main {
     display: flex;
     justify-content: center;
     align-items: center;
-    max-height: 90vh;
-    padding: 3.8rem 0;
+    padding: 6rem 0;
 }
 
 .exercises-view {
@@ -261,7 +326,7 @@ button:hover {
 .add-btn {
     width: 100%;
     margin-top: 15px;
-    background-color: #28a745;
+    background-color: rgb(100, 58, 167);
 }
 
 .submit-btn {

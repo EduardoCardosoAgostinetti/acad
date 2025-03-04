@@ -4,6 +4,7 @@ const PasswordReset = require('./PasswordReset');
 const ProfilePicture = require('./ProfilePicture');
 const GalleryPicture = require('./GalleryPicture');
 const WorkoutSheet = require('./WorkoutSheet');
+const DietEntry = require('./DietEntry');
 // Sincroniza os modelos com o banco de dados
 (async () => {
   try {

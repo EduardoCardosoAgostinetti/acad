@@ -3,6 +3,7 @@ const signin = require('./routes/signin');
 const signup = require('./routes/signup');
 const upload = require('./routes/upload');
 const exercise = require('./routes/exercise');
+const diet = require('./routes/diet');
 const forgotPassword = require('./routes/forgotPassword');
 const cors = require('cors');
 require('./models/syncModels');
@@ -21,6 +22,7 @@ app.use('/signup', signup);
 app.use('/forgotPassword', forgotPassword);
 app.use('/upload', upload);
 app.use('/exercise', exercise);
+app.use('/diet', diet);
 
 app.listen(PORT, () => {
     console.log(` HTTP running at port: 3000`);
