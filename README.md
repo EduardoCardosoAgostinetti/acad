@@ -137,7 +137,7 @@ Esta é uma API de gerenciamento de conta e exercícios, com funcionalidades com
 ---
 
 ### 12. **Criar entrada de dieta**
-- **URL:** `/diet/entries`  
+- **URL:** `/diet/entry`  
 - **Método:** `POST`  
 - **Corpo da requisição:**
   ```json
@@ -164,7 +164,7 @@ Esta é uma API de gerenciamento de conta e exercícios, com funcionalidades com
 ---
 
 ### 14. **Atualizar entrada de dieta**
-- **URL:** `/diet/entries/:entryId`  
+- **URL:** `/diet/entry/:entryId`  
 - **Método:** `PUT`  
 - **Corpo da requisição:**
   ```json
