@@ -3,97 +3,91 @@ const DietEntry = require('../models/DietEntry');
 const User = require('../models/User');
 const router = express.Router();
 
-// Criar uma nova entrada de dieta
-// Criar uma nova entrada de dieta
+// Create a new diet entry
 router.post('/entry', async (req, res) => {
     try {
         const { mealType, foods, userId } = req.body;
 
         if (!mealType || !foods || !userId) {
-            return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos!' });
+            return res.status(400).json({ error: 'All required fields must be filled!' });
         }
 
-        // Valida que o campo 'foods' é um array e contém pelo menos um item
+        // Validate that the 'foods' field is an array and contains at least one item
         if (!Array.isArray(foods) || foods.length === 0) {
-            return res.status(400).json({ error: 'O campo foods deve ser um array com pelo menos um item!' });
+            return res.status(400).json({ error: 'The foods field must be an array with at least one item!' });
         }
 
-        // Criar a entrada de dieta com um campo foods (JSON)
+        // Create the diet entry with a foods field (JSON)
         const newDietEntry = await DietEntry.create({
             mealType,
-            foods: JSON.stringify(foods),  // Armazenar como JSON
+            foods: JSON.stringify(foods),  // Store as JSON
             userId
         });
 
         res.status(201).json(newDietEntry);
     } catch (error) {
-        res.status(500).json({ error: 'Erro ao salvar a entrada de dieta', details: error.message });
+        res.status(500).json({ error: 'Error saving the diet entry', details: error.message });
     }
 });
 
-
-// Obter todas as entradas de dieta de um usuário
-// Obter todas as entradas de dieta de um usuário
+// Get all diet entries for a user
 router.get('/entries/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
 
         if (!userId) {
-            return res.status(400).json({ error: 'O userId é obrigatório!' });
+            return res.status(400).json({ error: 'The userId is required!' });
         }
 
         const dietEntries = await DietEntry.findAll({ where: { userId } });
 
         if (dietEntries.length === 0) {
-            return res.status(404).json({ error: 'Nenhuma entrada de dieta encontrada para este usuário!' });
+            return res.status(404).json({ error: 'No diet entries found for this user!' });
         }
 
-        // Processar cada entrada de dieta, convertendo o campo foods de JSON para objeto
+        // Process each diet entry, converting the foods field from JSON string to object
         const processedEntries = dietEntries.map(entry => {
             return {
                 ...entry.toJSON(),
-                foods: JSON.parse(entry.foods)  // Converter o campo foods de string JSON para objeto
+                foods: JSON.parse(entry.foods)  // Convert the foods field from JSON string to object
             };
         });
 
         res.status(200).json({ success: true, dietEntries: processedEntries });
     } catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar entradas de dieta', details: error.message });
+        res.status(500).json({ error: 'Error fetching diet entries', details: error.message });
     }
 });
 
-
-// Atualizar uma entrada de dieta
-// Atualizar uma entrada de dieta
+// Update a diet entry
 router.put('/entry/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { mealType, foods } = req.body;
 
         if (!mealType || !foods) {
-            return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos!' });
+            return res.status(400).json({ error: 'All required fields must be filled!' });
         }
 
         if (!Array.isArray(foods) || foods.length === 0) {
-            return res.status(400).json({ error: 'O campo foods deve ser um array com pelo menos um item!' });
+            return res.status(400).json({ error: 'The foods field must be an array with at least one item!' });
         }
 
         const dietEntry = await DietEntry.findByPk(id);
 
         if (!dietEntry) {
-            return res.status(404).json({ error: 'Entrada de dieta não encontrada!' });
+            return res.status(404).json({ error: 'Diet entry not found!' });
         }
 
         dietEntry.mealType = mealType;
-        dietEntry.foods = JSON.stringify(foods);  // Atualizar o campo foods com novo JSON
+        dietEntry.foods = JSON.stringify(foods);  // Update the foods field with new JSON
 
         await dietEntry.save();
 
-        res.status(200).json({ success: true, message: 'Entrada de dieta atualizada com sucesso!', dietEntry });
+        res.status(200).json({ success: true, message: 'Diet entry updated successfully!', dietEntry });
     } catch (error) {
-        res.status(500).json({ error: 'Erro ao atualizar a entrada de dieta', details: error.message });
+        res.status(500).json({ error: 'Error updating the diet entry', details: error.message });
     }
 });
-
 
 module.exports = router;
