@@ -190,4 +190,6 @@ Esta é uma API de gerenciamento de conta e exercícios, com funcionalidades com
 - **Sequelize** para configuracao do banco de dados.
 - **JWT** para seguranca de dados.
 - **bcrypt** para criptografia de dados.
-
+- **Docker** para contêineres e isolamento do ambiente de desenvolvimento e produção.
+- **Vue.js** para o frontend.
+- **ChatGPT** para auxilio no desenvolvimento. (Tem nem como negar).
